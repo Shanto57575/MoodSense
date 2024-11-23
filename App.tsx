@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface MoodEntry {
   id: string;
@@ -10,6 +11,7 @@ interface MoodEntry {
   insight?: string;
 }
 
+
 export default function App() {
   const [moodScale, setMoodScale] = useState<number>(3);
   const [description, setDescription] = useState<string>('');
@@ -17,6 +19,32 @@ export default function App() {
   const [currentInsight, setCurrentInsight] = useState<string>('');
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+
+  const loadMoodHistory = async () => {
+    try {
+      const history = await AsyncStorage.getItem('moodHistory');
+      if (history) {
+        setMoodHistory(JSON.parse(history));
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load mood history');
+    }
+  };
+
+  const saveMoodEntry = async (entry: MoodEntry) => {
+    try {
+      const updatedHistory = [entry, ...moodHistory];
+      await AsyncStorage.setItem('moodHistory', JSON.stringify(updatedHistory));
+      setMoodHistory(updatedHistory);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save mood entry');
+    }
+  };
+
+  useEffect(() => {
+    loadMoodHistory();
+  }, []);
+  
 
   const handleSubmit = async () => {
     if (description.trim().length === 0) {
@@ -52,7 +80,8 @@ export default function App() {
         timestamp: new Date().toISOString(),
         insight: insight,
       };
-  
+      
+      await saveMoodEntry(newEntry);
       setCurrentInsight(insight);
       setDescription('');
     } catch (error) {
