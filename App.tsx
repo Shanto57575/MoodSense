@@ -1,23 +1,212 @@
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import Slider from '@react-native-community/slider';
 
 export default function App() {
+  const [moodScale, setMoodScale] = useState<number>(3);
+  const [description, setDescription] = useState<string>('');
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Mood Tracker App</Text>
-    </View>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Mood Tracker</Text>
+      
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>How are you feeling? (1-5)</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={1}
+          maximumValue={5}
+          step={1}
+          value={moodScale}
+          onValueChange={setMoodScale}
+          minimumTrackTintColor="#5196F4"
+          maximumTrackTintColor="#d3d3d3"
+        />
+        <Text style={styles.scaleValue}>{moodScale}</Text>
+
+        <Text style={styles.label}>Describe your mood:</Text>
+        <TextInput
+          style={styles.input}
+          value={description}
+          onChangeText={setDescription}
+          placeholder="How are you feeling today?"
+          multiline
+        />
+
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.buttonText}>Get AI Insight</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#0F172A',
+    padding: 16,
   },
   title: {
     fontSize: 28,
+    fontWeight: '600',
+    marginTop: 48,
+    marginBottom: 32,
+    textAlign: 'center',
     color: '#F1F5F9',
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    backgroundColor: '#1E293B',
+    padding: 24,
+    borderRadius: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  label: {
+    fontSize: 17,
+    marginBottom: 12,
+    color: '#F1F5F9',
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  slider: {
+    height: 50, // Increased height for better touch area
+    marginBottom: 16,
+    marginHorizontal: -8, // Gives more space for the slider
+  },
+  scaleValue: {
+    textAlign: 'center',
+    fontSize: 32,
+    marginBottom: 28,
+    color: '#5196F4',
+    fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 12,
+    padding: 16,
+    minHeight: 120,
+    textAlignVertical: 'top',
+    marginBottom: 24,
+    color: '#F1F5F9',
+    backgroundColor: '#1E293B',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  button: {
+    backgroundColor: '#5196F4',
+    padding: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#5196F4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  insightContainer: {
+    backgroundColor: '#1E293B',
+    padding: 24,
+    borderRadius: 20,
+    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  insightTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#F1F5F9',
+    letterSpacing: 0.3,
+  },
+  insightText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#E2E8F0',
+    letterSpacing: 0.2,
+  },
+  historyButton: {
+    marginTop: 24,
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#334155',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  historyButtonText: {
+    color: '#F1F5F9',
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  historyContainer: {
+    marginTop: 24,
+  },
+  historyTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 20,
+    color: '#F1F5F9',
+    letterSpacing: 0.3,
+  },
+  historyEntry: {
+    backgroundColor: '#1E293B',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  historyDate: {
+    fontSize: 14,
+    color: '#CBD5E1',
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  historyMood: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#5196F4',
+  },
+  historyDescription: {
+    fontSize: 16,
+    marginBottom: 12,
+    color: '#E2E8F0',
+    lineHeight: 24,
+  },
+  historyInsight: {
+    fontSize: 15,
+    color: '#CBD5E1',
+    fontStyle: 'italic',
+    lineHeight: 22,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#334155',
+  },
+  chart: {
+    marginVertical: 24,
+    borderRadius: 16,
+    padding: 16,
+    backgroundColor: '#1E293B',
   },
 });
