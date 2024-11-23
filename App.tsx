@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Slider from '@react-native-community/slider';
 
 interface MoodEntry {
@@ -18,6 +18,52 @@ export default function App() {
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
+  const handleSubmit = async () => {
+    if (description.trim().length === 0) {
+      Alert.alert('Error', 'Please enter a mood description');
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      const response = await fetch('http://192.168.0.198:3000/api/mood-insight', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          scale: moodScale,
+          description: description,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to get AI insight');
+      }
+  
+      const data = await response.json();
+      const insight = data.insight;
+  
+      const newEntry: MoodEntry = {
+        id: Date.now().toString(),
+        scale: moodScale,
+        description: description,
+        timestamp: new Date().toISOString(),
+        insight: insight,
+      };
+  
+      setCurrentInsight(insight);
+      setDescription('');
+    } catch (error) {
+      console.error("error", error);
+      Alert.alert('Error', 'Failed to get AI insight. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Mood Sense</Text>
