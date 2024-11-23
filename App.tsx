@@ -1,8 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import Slider from '@react-native-community/slider';
+//App.tsx
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Slider from '@react-native-community/slider';
+import { LineChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 
+// Types
 interface MoodEntry {
   id: string;
   scale: number;
@@ -10,7 +14,6 @@ interface MoodEntry {
   timestamp: string;
   insight?: string;
 }
-
 
 export default function App() {
   const [moodScale, setMoodScale] = useState<number>(3);
@@ -20,6 +23,12 @@ export default function App() {
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
+  // Load mood history on app start
+  useEffect(() => {
+    loadMoodHistory();
+  }, []);
+
+  // Load mood history from AsyncStorage
   const loadMoodHistory = async () => {
     try {
       const history = await AsyncStorage.getItem('moodHistory');
@@ -31,6 +40,7 @@ export default function App() {
     }
   };
 
+  // Save mood entry to AsyncStorage
   const saveMoodEntry = async (entry: MoodEntry) => {
     try {
       const updatedHistory = [entry, ...moodHistory];
@@ -41,61 +51,99 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadMoodHistory();
-  }, []);
-  
+   const handleSubmit = async () => {
+  if (description.trim().length === 0) {
+    Alert.alert('Error', 'Please enter a mood description');
+    return;
+  }
 
-  const handleSubmit = async () => {
-    if (description.trim().length === 0) {
-      Alert.alert('Error', 'Please enter a mood description');
-      return;
-    }
-  
-    setLoading(true);
-  
-    try {
-      const response = await fetch('http://192.168.0.198:3000/api/mood-insight', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          scale: moodScale,
-          description: description,
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to get AI insight');
-      }
-  
-      const data = await response.json();
-      const insight = data.insight;
-  
-      const newEntry: MoodEntry = {
-        id: Date.now().toString(),
+  setLoading(true);
+
+  try {
+    const response = await fetch('http://192.168.0.198:3000/api/mood-insight', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         scale: moodScale,
         description: description,
-        timestamp: new Date().toISOString(),
-        insight: insight,
-      };
-      
-      await saveMoodEntry(newEntry);
-      setCurrentInsight(insight);
-      setDescription('');
-    } catch (error) {
-      console.error("error", error);
-      Alert.alert('Error', 'Failed to get AI insight. Please try again.');
-    } finally {
-      setLoading(false);
+      }),
+    });
+    console.log("response: " + response)
+
+    if (!response.ok) {
+      throw new Error('Failed to get AI insight');
     }
+
+    const data = await response.json();
+    const insight = data.insight;
+
+    const newEntry: MoodEntry = {
+      id: Date.now().toString(),
+      scale: moodScale,
+      description: description,
+      timestamp: new Date().toISOString(),
+      insight: insight,
+    };
+
+    await saveMoodEntry(newEntry);
+    setCurrentInsight(insight);
+    setDescription('');
+  } catch (error) {
+    console.error("error", error);
+    Alert.alert('Error', 'Failed to get AI insight. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const renderMoodChart = () => {
+  if (moodHistory.length < 2) return null;
+
+  const data = {
+    labels: moodHistory.slice(0, 7).reverse().map(() => ''),
+    datasets: [{
+      data: moodHistory.slice(0, 7).reverse().map(entry => entry.scale)
+    }]
   };
-  
-  
+
+  return (
+    <LineChart
+      data={data}
+      width={Dimensions.get('window').width - 40}
+      height={220}
+      chartConfig={{
+        backgroundColor: '#1E293B',
+        backgroundGradientFrom: '#1E293B',
+        backgroundGradientTo: '#1E293B',
+        decimalPlaces: 0,
+        color: (opacity = 1) => `rgba(81, 150, 244, ${opacity})`,
+        labelColor: () => '#E2E8F0',
+        style: {
+          borderRadius: 16,
+        },
+        propsForDots: {
+          r: '5',
+          strokeWidth: '2',
+          stroke: '#5196F4'
+        },
+        propsForBackgroundLines: {
+          strokeDasharray: '', // Solid lines
+          stroke: '#334155',
+          strokeWidth: 1,
+        },
+        strokeWidth: 2,
+      }}
+      bezier
+      style={styles.chart}
+    />
+  );
+};
+
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Mood Sense</Text>
+      <Text style={styles.title}>Mood Tracker</Text>
       
       <View style={styles.inputContainer}>
         <Text style={styles.label}>How are you feeling? (1-5)</Text>
@@ -120,13 +168,63 @@ export default function App() {
           multiline
         />
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Get AI Insight</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.buttonText}>Get AI Insight</Text>
+          )}
         </TouchableOpacity>
       </View>
+
+      {currentInsight ? (
+        <View style={styles.insightContainer}>
+          <Text style={styles.insightTitle}>AI Insight:</Text>
+          <Text style={styles.insightText}>{currentInsight}</Text>
+        </View>
+      ) : null}
+
+      <TouchableOpacity
+        style={styles.historyButton}
+        onPress={() => setShowHistory(!showHistory)}
+      >
+        <Text style={styles.historyButtonText}>
+          {showHistory ? 'Hide History' : 'Show History'}
+        </Text>
+      </TouchableOpacity>
+
+      {showHistory && (
+        <View style={styles.historyContainer}>
+          <Text style={styles.historyTitle}>Mood History</Text>
+          {renderMoodChart()}
+          {moodHistory.map((entry) => (
+            <View key={entry.id} style={styles.historyEntry}>
+              <Text style={styles.historyDate}>
+                {new Date(entry.timestamp).toLocaleDateString()}
+              </Text>
+              <Text style={styles.historyMood}>
+                Mood: {entry.scale}/5
+              </Text>
+              <Text style={styles.historyDescription}>
+                {entry.description}
+              </Text>
+              {entry.insight && (
+                <Text style={styles.historyInsight}>
+                  Insight: {entry.insight}
+                </Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -162,9 +260,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   slider: {
-    height: 50,
+    height: 50, // Increased height for better touch area
     marginBottom: 16,
-    marginHorizontal: -8,
+    marginHorizontal: -8, // Gives more space for the slider
   },
   scaleValue: {
     textAlign: 'center',
