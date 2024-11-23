@@ -17,10 +17,10 @@ export default function App() {
   const [currentInsight, setCurrentInsight] = useState<string>('');
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [showHistory, setShowHistory] = useState<boolean>(false);
-  
+
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Mood Tracker</Text>
+      <Text style={styles.title}>Mood Sense</Text>
       
       <View style={styles.inputContainer}>
         <Text style={styles.label}>How are you feeling? (1-5)</Text>
@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   slider: {
-    height: 50, // Increased height for better touch area
+    height: 50,
     marginBottom: 16,
-    marginHorizontal: -8, // Gives more space for the slider
+    marginHorizontal: -8,
   },
   scaleValue: {
     textAlign: 'center',
