@@ -31,7 +31,6 @@ app.get("/", (req, res) => {
 app.post("/api/mood-insight", async (req, res) => {
 	try {
 		const { scale, description }: MoodRequest = req.body;
-		console.log(scale, description);
 
 		const systemMessage =
 			"You are an empathetic AI therapist skilled in providing emotional support and practical advice.";

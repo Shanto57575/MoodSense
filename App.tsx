@@ -70,7 +70,6 @@ export default function App() {
         description: description,
       }),
     });
-    console.log("response: " + response)
 
     if (!response.ok) {
       throw new Error('Failed to get AI insight');
