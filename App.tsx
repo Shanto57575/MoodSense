@@ -2,10 +2,22 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import Slider from '@react-native-community/slider';
 
+interface MoodEntry {
+  id: string;
+  scale: number;
+  description: string;
+  timestamp: string;
+  insight?: string;
+}
+
 export default function App() {
   const [moodScale, setMoodScale] = useState<number>(3);
   const [description, setDescription] = useState<string>('');
-
+  const [loading, setLoading] = useState<boolean>(false);
+  const [currentInsight, setCurrentInsight] = useState<string>('');
+  const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Mood Tracker</Text>
